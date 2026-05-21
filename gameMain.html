@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MJ Game Master Portal</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Noto+Sans+KR:wght@300;400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* 기본 리셋 및 럭셔리 테마 설정 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #F9F8F6;
+            /* 에르메스풍 크림 베이지 */
+            color: #2C2C2C;
+            /* 짙은 차콜 */
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+
+        /* 1. 스플래시 화면: 이미지가 화면 가득 차도록 설정 */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #F9F8F6;
+            z-index: 9999;
+            transition: opacity 1.5s ease-in-out, visibility 1.5s ease-in-out;
+            overflow: hidden;
+        }
+
+        #splash-screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* 이미지가 비율을 유지하면서 화면 전체를 꽉 채움 */
+            opacity: 0;
+            animation: fadeInOut 3.5s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: scale(1.05);
+            }
+
+            30% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            70% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1.1);
+            }
+        }
+
+        /* 2. 메인 컨테이너 */
+        #app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #FFFFFF;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+            position: relative;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #app-container.ready {
+            opacity: 1;
+        }
+
+        /* 화면 전환 공통 */
+        .page-view {
+            display: none;
+            padding: 40px 20px;
+            animation: fadeUp 0.5s ease forwards;
+            flex-grow: 1;
+        }
+
+        .page-view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 3. 메인 화면 (리스트) */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header p {
+            color: #A68A56;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        header h1 {
+            font-size: 28px;
+            letter-spacing: -0.5px;
+        }
+
+        header .divider {
+            width: 40px;
+            height: 1px;
+            background-color: #A68A56;
+            margin: 20px auto 0;
+        }
+
+        .game-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-grow: 1;
+        }
+
+        .game-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px 20px;
+            border: 1px solid #EAEAEA;
+            background: #FAFAFA;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover {
+            border-color: #A68A56;
+            background: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .game-info h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .game-info p {
+            font-size: 13px;
+            color: #777;
+            font-weight: 300;
+        }
+
+        .game-arrow {
+            font-size: 20px;
+            color: #A68A56;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* 4. 상세 화면 */
+        .back-btn {
+            background: none;
+            border: none;
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            color: #A68A56;
+            cursor: pointer;
+            margin-bottom: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-style: italic;
+        }
+
+        .detail-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .detail-header h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .detail-header p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        .mock-game-area {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 1px solid #EAEAEA;
+            background: #F9F8F6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #A68A56;
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-style: italic;
+            margin-bottom: 40px;
+        }
+
+        /* 5. 스페셜 땡스 투 (하단) */
+        .special-thanks {
+            text-align: center;
+            margin-top: auto;
+            padding-top: 40px;
+            padding-bottom: 20px;
+            border-top: 1px solid #EAEAEA;
+        }
+
+        .special-thanks h3 {
+            font-size: 14px;
+            color: #A68A56;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .special-thanks p {
+            font-size: 16px;
+            color: #2C2C2C;
+            font-weight: 400;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="splash-screen">
+        <img src="image.png" alt="MJ Entertainment Logo">
+    </div>
+
+    <div id="app-container">
+
+        <div id="main-view" class="page-view active">
+            <header>
+                <p>MJ ENTERTAINMENT</p>
+                <h1>Game Master Portal</h1>
+                <div class="divider"></div>
+            </header>
+
+            <div class="game-list">
+                <div class="game-card" onclick="location.href='sudoku-gem.html'">
+                    <div class="game-info">
+                        <h2>MJ Sudoku</h2>
+                        <p>Logical Sophistication</p>
+                    </div>
+                    <div class="game-arrow">→</div>
+                </div>
+
+                <div class="game-card" style="opacity: 0.6; cursor: default;">
+                    <div class="game-info">
+                        <h2>Coming Soon</h2>
+                        <p>Next Collection</p>
+                    </div>
+                    <div class="game-arrow">+</div>
+                </div>
+            </div>
+
+            <div class="special-thanks">
+                <h3>Special Thanks To</h3>
+                <p>미나, 민욱</p>
+            </div>
+        </div>
+
+        <div id="detail-view" class="page-view">
+            <button class="back-btn" onclick="closeDetail()">← Back to list</button>
+
+            <div class="detail-header">
+                <h1 id="detail-title">Game Title</h1>
+                <p id="detail-desc">Game Description</p>
+            </div>
+
+            <div class="mock-game-area">
+                Game Interface Area
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. 스플래시 화면 제어
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            const app = document.getElementById('app-container');
+
+            // 로고 애니메이션(3.5초)이 끝날 즈음에 스플래시 화면 숨기고 메인 화면 표시
+            setTimeout(() => {
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+                app.classList.add('ready');
+            }, 3200);
+        });
+
+        // 2. 화면 전환 함수 (현재는 스도쿠가 바로 넘어가므로 사용되지 않지만, 향후를 위해 남겨둠)
+        function openDetail(title, desc) {
+            document.getElementById('detail-title').innerText = title;
+            document.getElementById('detail-desc').innerText = desc;
+
+            document.getElementById('main-view').classList.remove('active');
+            document.getElementById('detail-view').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function closeDetail() {
+            document.getElementById('detail-view').classList.remove('active');
+            document.getElementById('main-view').classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,120 +1,429 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MJ Sudoku</title>
-    <style>
-        /* 인스타그램 느낌의 깔끔하고 모던한 폰트 및 리셋 */
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Roboto', sans-serif; background-color: #fafafa; color: #262626; overflow-x: hidden; }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
 
-        /* 스플래시 화면 (전체화면, 로고 페이드 인/아웃) */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #dcecf6; /* 로고 배경색과 유사한 톤 */
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 1s ease-in-out;
+    <style>
+        /* 기본 리셋 및 럭셔리 테마 설정 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
-        #splash-screen img { width: 60%; max-width: 300px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(0.95); } }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #F9F8F6;
+            color: #2C2C2C;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
 
         /* 메인 컨테이너 */
-        #app-container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.05); display: none; flex-direction: column; }
-        
+        #app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #FFFFFF;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
         /* 상단 헤더 */
-        header { border-bottom: 1px solid #dbdbdb; padding: 15px 20px; display: flex; align-items: center; justify-content: center; position: relative; background: #fff; }
-        header h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
-        .back-btn { position: absolute; left: 20px; font-size: 24px; cursor: pointer; display: none; font-weight: 300; }
-
-        /* 화면 뷰 */
-        .view { display: none; padding: 20px; flex: 1; }
-        .view.active { display: flex; flex-direction: column; }
-
-        /* 난이도 및 스테이지 선택 UI */
-        .level-section { margin-bottom: 30px; }
-        .level-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
-        .level-title span.locked { color: #8e8e8e; font-size: 12px; font-weight: 400; }
-        
-        .stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .stage-btn {
-            aspect-ratio: 1; border: 1px solid #dbdbdb; border-radius: 8px; background: #fff;
-            display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s;
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px 20px;
+            border-bottom: 1px solid #EAEAEA;
+            position: relative;
+            background-color: #FFFFFF;
+            z-index: 10;
         }
-        .stage-btn.cleared { background: #0095f6; color: #fff; border-color: #0095f6; }
-        .stage-btn.locked { background: #fafafa; color: #dbdbdb; pointer-events: none; }
-        .stage-btn:active { transform: scale(0.95); }
 
-        /* 스도쿠 게임 보드 */
-        .board-container { width: 100%; aspect-ratio: 1; margin: 20px 0; display: grid; grid-template-columns: repeat(9, 1fr); border: 2px solid #262626; }
+        /* 뒤로가기 버튼 */
+        .back-button {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            display: none;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thick-arrow-left {
+            width: 12px;
+            height: 12px;
+            border-left: 3.5px solid #A68A56;
+            border-bottom: 3.5px solid #A68A56;
+            transform: rotate(45deg);
+            margin-left: 4px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            letter-spacing: -0.5px;
+        }
+
+        /* 화면 뷰 공통 */
+        .page-view {
+            display: none;
+            padding: 30px 20px;
+            animation: fadeUp 0.5s ease forwards;
+            flex-grow: 1;
+        }
+
+        .page-view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 메뉴 뷰 */
+        .level-section {
+            margin-bottom: 40px;
+        }
+
+        .level-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #A68A56;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #EAEAEA;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .level-title .locked-icon {
+            font-size: 12px;
+            color: #BBB;
+            font-weight: 300;
+            text-transform: none;
+            font-style: italic;
+        }
+
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .stage-card {
+            aspect-ratio: 1;
+            border: 1px solid #EAEAEA;
+            background-color: #FAFAFA;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stage-card.cleared {
+            background-color: #A68A56;
+            color: #FFFFFF;
+            border-color: #A68A56;
+        }
+
+        .stage-card.locked {
+            opacity: 0.3;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* [신규] 현재 도전해야 할 최고 스테이지 애니메이션 효과 */
+        .stage-card.current {
+            border: 2px solid #2C2C2C;
+            background-color: #FFFFFF;
+            color: #2C2C2C;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2);
+            animation: pulseCurrent 2s infinite;
+        }
+
+        @keyframes pulseCurrent {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2);
+            }
+
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 8px 16px rgba(166, 138, 86, 0.4);
+                border-color: #A68A56;
+                color: #A68A56;
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2);
+            }
+        }
+
+        .stage-card:not(.locked):not(.cleared):not(.current):hover {
+            border-color: #A68A56;
+            color: #A68A56;
+            transform: translateY(-2px);
+        }
+
+        /* 게임 상세 뷰 */
+        .game-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .game-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .game-header p {
+            font-size: 14px;
+            color: #A68A56;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        /* 스도쿠 보드 */
+        .board-container {
+            width: 100%;
+            aspect-ratio: 1;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            border: 2px solid #2C2C2C;
+            background-color: #FFFFFF;
+        }
+
         .cell {
-            border: 1px solid #dbdbdb; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: 500; cursor: pointer; background: #fff;
+            border: 1px solid #EAEAEA;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 400;
+            cursor: pointer;
+            color: #2C2C2C;
+            font-family: 'Noto Sans KR', sans-serif;
+            transition: background 0.2s;
         }
-        .cell:nth-child(3n) { border-right: 2px solid #262626; }
-        .cell:nth-child(9n) { border-right: none; }
-        .cell:nth-child(n+19):nth-child(-n+27), .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #262626; }
-        .cell.fixed { font-weight: 700; color: #262626; background: #fafafa; }
-        .cell.input { color: #0095f6; }
-        .cell.selected { background: #e0f2fe; }
-        .cell.error { color: #ed4956; background: #ffebee; }
+
+        .cell:nth-child(3n) {
+            border-right: 2px solid #2C2C2C;
+        }
+
+        .cell:nth-child(9n) {
+            border-right: none;
+        }
+
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom: 2px solid #2C2C2C;
+        }
+
+        /* 셀 상태 디자인 */
+        .cell.fixed {
+            font-weight: 500;
+            color: #2C2C2C;
+            background-color: #F9F8F6;
+        }
+
+        .cell.input {
+            color: #C5A059;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        /* 인터랙션 하이라이트 */
+        .cell.selected {
+            background-color: #F4F1EB;
+        }
+
+        .cell.selected.active-cell {
+            background-color: #A68A56;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        .cell.highlight-same {
+            background-color: #E8DECE;
+            font-weight: 700;
+            color: #8C6A36;
+        }
+
+        .cell.error {
+            color: #D9534F;
+            background-color: #FFF2F2;
+            font-weight: 700;
+        }
 
         /* 숫자 패드 */
-        .numpad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; padding-bottom: 20px; }
-        .num-btn { padding: 15px 0; border-radius: 8px; border: 1px solid #dbdbdb; background: #fff; font-size: 20px; font-weight: 600; cursor: pointer; }
-        .num-btn:active { background: #efefef; }
-        .action-btn { grid-column: span 5; background: #0095f6; color: white; border: none; font-size: 16px; padding: 15px; border-radius: 8px; margin-top: 10px; cursor: pointer;}
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: auto;
+            padding-bottom: 20px;
+        }
+
+        .num-btn {
+            padding: 18px 0;
+            border-radius: 4px;
+            border: 1px solid #EAEAEA;
+            background-color: #FAFAFA;
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2C2C2C;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .num-btn:active {
+            background-color: #EFEBE4;
+            transform: scale(0.97);
+        }
+
+        /* 확인 버튼 */
+        .action-btn {
+            grid-column: span 5;
+            background-color: #2C2C2C;
+            color: #FFFFFF;
+            border: none;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 15px;
+            padding: 18px;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .action-btn:hover {
+            background-color: #A68A56;
+        }
     </style>
 </head>
-<body>
 
-    <div id="splash-screen">
-        <img src="image.png" alt="MJ Logo">
-    </div>
+<body>
 
     <div id="app-container">
         <header>
-            <div class="back-btn" id="back-btn" onclick="showView('menu-view')">‹</div>
-            <h1 id="header-title">MJ SUDOKU</h1>
+            <div id="back-button" class="back-button" onclick="showView('menu-view')">
+                <div class="thick-arrow-left"></div>
+            </div>
+            <h1>MJ SUDOKU</h1>
         </header>
 
-        <div id="menu-view" class="view active">
+        <div id="menu-view" class="page-view active">
             <div id="levels-container"></div>
         </div>
 
-        <div id="game-view" class="view">
-            <div style="text-align: center; margin-bottom: 10px; font-weight: 500;" id="game-info">EASY - STAGE 1</div>
-            <div class="board-container" id="board"></div>
-            
-            <div class="numpad">
-                <button class="num-btn" onclick="inputNumber(1)">1</button>
-                <button class="num-btn" onclick="inputNumber(2)">2</button>
-                <button class="num-btn" onclick="inputNumber(3)">3</button>
-                <button class="num-btn" onclick="inputNumber(4)">4</button>
-                <button class="num-btn" onclick="inputNumber(5)">5</button>
-                <button class="num-btn" onclick="inputNumber(6)">6</button>
-                <button class="num-btn" onclick="inputNumber(7)">7</button>
-                <button class="num-btn" onclick="inputNumber(8)">8</button>
-                <button class="num-btn" onclick="inputNumber(9)">9</button>
-                <button class="num-btn" onclick="inputNumber(0)">지우기</button>
+        <div id="game-view" class="page-view">
+            <div class="game-header">
+                <h2 id="current-stage-title">Easy - Stage 1</h2>
+                <p>Find the missing numbers</p>
             </div>
-            <button class="action-btn" onclick="checkWin()">정답 확인</button>
+
+            <div class="board-container" id="board"></div>
+
+            <div class="numpad">
+                <button class="num-btn" data-val="1" onclick="inputNumber(1)">1</button>
+                <button class="num-btn" data-val="2" onclick="inputNumber(2)">2</button>
+                <button class="num-btn" data-val="3" onclick="inputNumber(3)">3</button>
+                <button class="num-btn" data-val="4" onclick="inputNumber(4)">4</button>
+                <button class="num-btn" data-val="5" onclick="inputNumber(5)">5</button>
+                <button class="num-btn" data-val="6" onclick="inputNumber(6)">6</button>
+                <button class="num-btn" data-val="7" onclick="inputNumber(7)">7</button>
+                <button class="num-btn" data-val="8" onclick="inputNumber(8)">8</button>
+                <button class="num-btn" data-val="9" onclick="inputNumber(9)">9</button>
+                <button class="num-btn" data-val="0" onclick="inputNumber(0)"
+                    style="font-family:'Noto Sans KR'; font-size:14px; color:#C5A059;">지우기</button>
+            </div>
+            <button class="action-btn" onclick="checkWin()">Check Solution</button>
         </div>
     </div>
 
     <script>
-        // 게임 설정 데이터
+        // 이중 저장 시스템 (쿠키 + 로컬스토리지)
+        function saveProgress(data) {
+            const dataStr = JSON.stringify(data);
+            try { localStorage.setItem('mj_sudoku_progress', dataStr); } catch (e) { }
+
+            let date = new Date();
+            date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
+            document.cookie = "mj_sudoku_progress=" + encodeURIComponent(dataStr) + "; expires=" + date.toUTCString() + "; path=/";
+        }
+
+        function loadProgress() {
+            let data = null;
+            try {
+                let ls = localStorage.getItem('mj_sudoku_progress');
+                if (ls) data = JSON.parse(ls);
+            } catch (e) { }
+
+            if (!data) {
+                let nameEQ = "mj_sudoku_progress=";
+                let ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) {
+                        try { data = JSON.parse(decodeURIComponent(c.substring(nameEQ.length, c.length))); } catch (e) { }
+                    }
+                }
+            }
+            return data || { clearedStages: {} };
+        }
+
+        // 게임 설정
         const levels = ["Easy", "Medium", "Hard", "Expert", "Master"];
         const stagesPerLevel = 20;
-        
-        // 유저 진행 데이터 (로컬 스토리지에 저장하여 껐다 켜도 유지됨)
-        let progress = JSON.parse(localStorage.getItem('mj_sudoku_progress')) || {
-            clearedStages: {} // 예: { "Easy": 5 } (Easy 5판 깸)
-        };
 
-        // 초기화 시 빈 데이터 채우기
-        levels.forEach(lvl => { if(progress.clearedStages[lvl] === undefined) progress.clearedStages[lvl] = 0; });
+        let progress = loadProgress();
+        levels.forEach(lvl => { if (progress.clearedStages[lvl] === undefined) progress.clearedStages[lvl] = 0; });
 
         let currentLevel = "";
         let currentStage = 0;
@@ -122,196 +431,206 @@
         let solutionBoard = [];
         let playerBoard = [];
 
-        // 1. 스플래시 화면 제어 (부드럽게 사라짐)
-        window.onload = () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    document.getElementById('app-container').style.display = 'flex';
-                    renderMenu();
-                }, 1000);
-            }, 2000); // 2초간 로고 보여줌
-        };
+        window.onload = () => { renderMenu(); };
 
-        // 2. 화면 전환 함수
         function showView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-            
+
             if (viewId === 'game-view') {
-                document.getElementById('back-btn').style.display = 'block';
+                document.getElementById('back-button').style.display = 'flex';
+                window.scrollTo(0, 0); // 게임 화면 진입 시 최상단으로
             } else {
-                document.getElementById('back-btn').style.display = 'none';
-                document.getElementById('header-title').innerText = "MJ SUDOKU";
+                document.getElementById('back-button').style.display = 'none';
                 renderMenu();
             }
         }
 
-        // 3. 메뉴 (난이도 및 스테이지) 렌더링
         function renderMenu() {
             const container = document.getElementById('levels-container');
             container.innerHTML = "";
 
-            let previousLevelCleared = true;
-
             levels.forEach((lvl, index) => {
                 const section = document.createElement('div');
                 section.className = 'level-section';
-                
-                // 이전 레벨 20판을 다 깨야 잠금 해제 (Easy는 무조건 열림)
-                const isUnlocked = index === 0 || progress.clearedStages[levels[index-1]] >= 20;
-                
+
+                const isUnlocked = index === 0 || progress.clearedStages[levels[index - 1]] >= 20;
+
                 section.innerHTML = `
                     <div class="level-title">
                         ${lvl} 
-                        ${!isUnlocked ? '<span class="locked">Locked</span>' : ''}
+                        ${!isUnlocked ? '<span class="locked-icon">Locked (Clear prev. level)</span>' : ''}
                     </div>
                     <div class="stage-grid">
-                        ${Array.from({length: stagesPerLevel}, (_, i) => {
-                            const stageNum = i + 1;
-                            const isCleared = stageNum <= progress.clearedStages[lvl];
-                            // 해당 난이도가 열려있고, (이전 스테이지를 깼거나 1스테이지일 때) 플레이 가능
-                            const isPlayable = isUnlocked && (stageNum === 1 || stageNum <= progress.clearedStages[lvl] + 1);
-                            
-                            let btnClass = "stage-btn";
-                            if(isCleared) btnClass += " cleared";
-                            if(!isPlayable) btnClass += " locked";
+                        ${Array.from({ length: stagesPerLevel }, (_, i) => {
+                    const stageNum = i + 1;
+                    const isCleared = stageNum <= progress.clearedStages[lvl];
+                    const isPlayable = isUnlocked && (stageNum === 1 || stageNum <= progress.clearedStages[lvl] + 1);
 
-                            return `<div class="${btnClass}" onclick="startGame('${lvl}', ${stageNum})">${stageNum}</div>`;
-                        }).join('')}
+                    // [핵심] 현재 도전해야 할 최고 스테이지 판별
+                    const isCurrent = isUnlocked && stageNum === progress.clearedStages[lvl] + 1;
+
+                    let cardClass = "stage-card";
+                    if (isCleared) cardClass += " cleared";
+                    else if (!isPlayable) cardClass += " locked";
+                    else if (isCurrent) cardClass += " current"; // 현재 판 강조 클래스 추가
+
+                    return `<div class="${cardClass}" onclick="startGame('${lvl}', ${stageNum})">${stageNum}</div>`;
+                }).join('')}
                     </div>
                 `;
                 container.appendChild(section);
             });
+
+            // [신규] 렌더링 직후 '현재 스테이지(current)' 위치로 부드럽게 자동 스크롤
+            setTimeout(() => {
+                const currentCard = document.querySelector('.stage-card.current');
+                if (currentCard) {
+                    currentCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
         }
 
-        // 4. 게임 시작 및 스도쿠 생성 로직
         function startGame(level, stage) {
             currentLevel = level;
             currentStage = stage;
-            document.getElementById('game-info').innerText = `${level.toUpperCase()} - STAGE ${stage}`;
-            
+            document.getElementById('current-stage-title').innerText = `${level} - Stage ${stage}`;
+
             generateSudoku(level);
             renderBoard();
             showView('game-view');
         }
 
-        // 간단한 스도쿠 생성기 (난이도에 따라 빈칸 개수 조절)
         function generateSudoku(level) {
-            // 기본 완성된 스도쿠 배열 (빠른 로딩을 위해 기본 템플릿 사용 후 숫자 셔플)
             const base = [
-                [5,3,4,6,7,8,9,1,2], [6,7,2,1,9,5,3,4,8], [1,9,8,3,4,2,5,6,7],
-                [8,5,9,7,6,1,4,2,3], [4,2,6,8,5,3,7,9,1], [7,1,3,9,2,4,8,5,6],
-                [9,6,1,5,3,7,2,8,4], [2,8,7,4,1,9,6,3,5], [3,4,5,2,8,6,1,7,9]
+                [5, 3, 4, 6, 7, 8, 9, 1, 2], [6, 7, 2, 1, 9, 5, 3, 4, 8], [1, 9, 8, 3, 4, 2, 5, 6, 7],
+                [8, 5, 9, 7, 6, 1, 4, 2, 3], [4, 2, 6, 8, 5, 3, 7, 9, 1], [7, 1, 3, 9, 2, 4, 8, 5, 6],
+                [9, 6, 1, 5, 3, 7, 2, 8, 4], [2, 8, 7, 4, 1, 9, 6, 3, 5], [3, 4, 5, 2, 8, 6, 1, 7, 9]
             ];
-            
-            // 난수화하여 매번 다른 판처럼 보이게 숫자 매핑
-            const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
-            solutionBoard = base.map(row => row.map(val => nums[val-1]));
-            
-            // 깊은 복사
+
+            const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+            solutionBoard = base.map(row => row.map(val => nums[val - 1]));
             playerBoard = JSON.parse(JSON.stringify(solutionBoard));
 
-            // 난이도별 지우는 칸 수 (Easy: 30칸 ~ Master: 60칸)
-            let removeCount = 30 + (levels.indexOf(level) * 7); 
-            
-            while(removeCount > 0) {
+            let removeCount = 30 + (levels.indexOf(level) * 7);
+
+            while (removeCount > 0) {
                 let r = Math.floor(Math.random() * 9);
                 let c = Math.floor(Math.random() * 9);
-                if(playerBoard[r][c] !== 0) {
+                if (playerBoard[r][c] !== 0) {
                     playerBoard[r][c] = 0;
                     removeCount--;
                 }
             }
         }
 
-        // 5. 보드 렌더링
         function renderBoard() {
             const boardDiv = document.getElementById('board');
             boardDiv.innerHTML = "";
             selectedCell = null;
 
-            for(let r=0; r<9; r++) {
-                for(let c=0; c<9; c++) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
                     cell.className = "cell";
                     cell.dataset.r = r;
                     cell.dataset.c = c;
-                    
-                    if(playerBoard[r][c] !== 0) {
+
+                    if (playerBoard[r][c] !== 0) {
                         cell.innerText = playerBoard[r][c];
                         cell.classList.add('fixed');
-                    } else {
-                        cell.onclick = () => selectCell(cell, r, c);
                     }
+
+                    cell.onclick = () => selectCell(cell, r, c);
                     boardDiv.appendChild(cell);
                 }
             }
         }
 
-        // 셀 선택
         function selectCell(cellElement, r, c) {
-            document.querySelectorAll('.cell').forEach(el => el.classList.remove('selected'));
-            cellElement.classList.add('selected');
+            document.querySelectorAll('.cell').forEach(el => {
+                el.classList.remove('selected', 'active-cell', 'highlight-same');
+            });
+
             selectedCell = { el: cellElement, r: r, c: c };
+
+            for (let i = 0; i < 9; i++) {
+                document.querySelector(`.cell[data-r="${r}"][data-c="${i}"]`).classList.add('selected');
+                document.querySelector(`.cell[data-r="${i}"][data-c="${c}"]`).classList.add('selected');
+            }
+
+            cellElement.classList.add('active-cell');
+
+            let cellValue = playerBoard[r][c];
+
+            if (cellValue !== 0) {
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        if (playerBoard[i][j] === cellValue) {
+                            const sameCell = document.querySelector(`.cell[data-r="${i}"][data-c="${j}"]`);
+                            if (sameCell !== cellElement) sameCell.classList.add('highlight-same');
+                        }
+                    }
+                }
+            }
         }
 
-        // 숫자 입력
         function inputNumber(num) {
-            if(!selectedCell) return;
-            
-            if(num === 0) {
+            if (!selectedCell) return;
+            if (selectedCell.el.classList.contains('fixed')) return;
+
+            if (num === 0) {
                 playerBoard[selectedCell.r][selectedCell.c] = 0;
                 selectedCell.el.innerText = "";
+                selectedCell.el.classList.remove('input');
             } else {
                 playerBoard[selectedCell.r][selectedCell.c] = num;
                 selectedCell.el.innerText = num;
                 selectedCell.el.classList.add('input');
                 selectedCell.el.classList.remove('error');
             }
+
+            selectCell(selectedCell.el, selectedCell.r, selectedCell.c);
         }
 
-        // 6. 정답 확인 및 클리어 처리
         function checkWin() {
             let isWin = true;
             let isFull = true;
 
-            for(let r=0; r<9; r++) {
-                for(let c=0; c<9; c++) {
-                    if(playerBoard[r][c] === 0) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (playerBoard[r][c] === 0) {
                         isFull = false;
                         continue;
                     }
-                    if(playerBoard[r][c] !== solutionBoard[r][c]) {
+                    if (playerBoard[r][c] !== solutionBoard[r][c]) {
                         isWin = false;
-                        // 틀린 칸 빨간색 표시
                         const cellEl = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
-                        if(!cellEl.classList.contains('fixed')) {
+                        if (!cellEl.classList.contains('fixed')) {
                             cellEl.classList.add('error');
                         }
                     }
                 }
             }
 
-            if(!isFull) {
+            if (!isFull) {
                 alert("아직 빈칸이 있습니다!");
                 return;
             }
 
-            if(isWin) {
+            if (isWin) {
                 alert("정답입니다! 다음 스테이지가 열렸습니다.");
-                // 진행도 저장
-                if(progress.clearedStages[currentLevel] < currentStage) {
+
+                if (progress.clearedStages[currentLevel] < currentStage) {
                     progress.clearedStages[currentLevel] = currentStage;
-                    localStorage.setItem('mj_sudoku_progress', JSON.stringify(progress));
+                    saveProgress(progress);
                 }
                 showView('menu-view');
             } else {
-                alert("틀린 부분이 있습니다. 빨간색으로 표시된 칸을 다시 확인해주세요.");
+                alert("틀린 부분이 있습니다. 빨간색으로 표시된 칸을 확인해주세요.");
             }
         }
     </script>
 </body>
+
 </html>
