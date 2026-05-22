@@ -1,355 +1,93 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MJ Sudoku</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313888937157530" crossorigin="anonymous"></script>
 
     <style>
         /* 기본 리셋 및 럭셔리 테마 설정 */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #F9F8F6;
-            color: #2C2C2C;
-            overflow-x: hidden;
-        }
-
-        h1,
-        h2,
-        h3 {
-            font-family: 'Playfair Display', serif;
-            font-weight: 600;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #F9F8F6; color: #2C2C2C; overflow-x: hidden; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; }
 
         /* 메인 컨테이너 */
-        #app-container {
-            max-width: 500px;
-            margin: 0 auto;
-            min-height: 100vh;
-            background-color: #FFFFFF;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
+        #app-container { max-width: 500px; margin: 0 auto; min-height: 100vh; background-color: #FFFFFF; box-shadow: 0 10px 40px rgba(0,0,0,0.03); display: flex; flex-direction: column; position: relative; }
+        
         /* 상단 헤더 */
-        header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 25px 20px;
-            border-bottom: 1px solid #EAEAEA;
-            position: relative;
-            background-color: #FFFFFF;
-            z-index: 10;
-        }
-
-        /* 뒤로가기 버튼 */
-        .back-button {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            display: none;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .thick-arrow-left {
-            width: 12px;
-            height: 12px;
-            border-left: 3.5px solid #A68A56;
-            border-bottom: 3.5px solid #A68A56;
-            transform: rotate(45deg);
-            margin-left: 4px;
-        }
-
-        header h1 {
-            font-size: 22px;
-            letter-spacing: -0.5px;
-        }
+        header { display: flex; justify-content: center; align-items: center; padding: 25px 20px; border-bottom: 1px solid #EAEAEA; position: relative; background-color: #FFFFFF; z-index: 10; }
+        .back-button { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; display: none; width: 24px; height: 24px; align-items: center; justify-content: center; }
+        .thick-arrow-left { width: 12px; height: 12px; border-left: 3.5px solid #A68A56; border-bottom: 3.5px solid #A68A56; transform: rotate(45deg); margin-left: 4px; }
+        header h1 { font-size: 22px; letter-spacing: -0.5px; }
 
         /* 화면 뷰 공통 */
-        .page-view {
-            display: none;
-            padding: 30px 20px;
-            animation: fadeUp 0.5s ease forwards;
-            flex-grow: 1;
-        }
-
-        .page-view.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        .page-view { display: none; padding: 30px 20px; animation: fadeUp 0.5s ease forwards; flex-grow: 1; }
+        .page-view.active { display: flex; flex-direction: column; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 메뉴 뷰 */
-        .level-section {
-            margin-bottom: 40px;
-        }
-
-        .level-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #A68A56;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #EAEAEA;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .level-title .locked-icon {
-            font-size: 12px;
-            color: #BBB;
-            font-weight: 300;
-            text-transform: none;
-            font-style: italic;
-        }
-
-        .stage-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-        }
-
-        .stage-card {
-            aspect-ratio: 1;
-            border: 1px solid #EAEAEA;
-            background-color: #FAFAFA;
-            border-radius: 4px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .stage-card.cleared {
-            background-color: #A68A56;
-            color: #FFFFFF;
-            border-color: #A68A56;
-        }
-
-        .stage-card.locked {
-            opacity: 0.3;
-            cursor: default;
-            pointer-events: none;
-        }
-
-        /* [신규] 현재 도전해야 할 최고 스테이지 애니메이션 효과 */
-        .stage-card.current {
-            border: 2px solid #2C2C2C;
-            background-color: #FFFFFF;
-            color: #2C2C2C;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2);
-            animation: pulseCurrent 2s infinite;
-        }
-
-        @keyframes pulseCurrent {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2);
-            }
-
-            50% {
-                transform: scale(1.08);
-                box-shadow: 0 8px 16px rgba(166, 138, 86, 0.4);
-                border-color: #A68A56;
-                color: #A68A56;
-            }
-
-            100% {
-                transform: scale(1);
-                box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2);
-            }
-        }
-
-        .stage-card:not(.locked):not(.cleared):not(.current):hover {
-            border-color: #A68A56;
-            color: #A68A56;
-            transform: translateY(-2px);
-        }
+        .level-section { margin-bottom: 40px; }
+        .level-title { font-size: 18px; font-weight: 600; color: #A68A56; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #EAEAEA; display: flex; align-items: center; justify-content: space-between; }
+        .level-title .locked-icon { font-size: 12px; color: #BBB; font-weight: 300; text-transform: none; font-style: italic; }
+        
+        .stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+        .stage-card { aspect-ratio: 1; border: 1px solid #EAEAEA; background-color: #FAFAFA; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; }
+        .stage-card.cleared { background-color: #A68A56; color: #FFFFFF; border-color: #A68A56; }
+        .stage-card.locked { opacity: 0.3; cursor: default; pointer-events: none; }
+        
+        .stage-card.current { border: 2px solid #2C2C2C; background-color: #FFFFFF; color: #2C2C2C; font-weight: 700; box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2); animation: pulseCurrent 2s infinite; }
+        @keyframes pulseCurrent { 0% { transform: scale(1); box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2); } 50% { transform: scale(1.08); box-shadow: 0 8px 16px rgba(166, 138, 86, 0.4); border-color: #A68A56; color: #A68A56;} 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(166, 138, 86, 0.2); } }
+        .stage-card:not(.locked):not(.cleared):not(.current):hover { border-color: #A68A56; color: #A68A56; transform: translateY(-2px); }
 
         /* 게임 상세 뷰 */
-        .game-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .game-header h2 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .game-header p {
-            font-size: 14px;
-            color: #A68A56;
-            font-style: italic;
-            font-weight: 300;
-        }
+        .game-header { text-align: center; margin-bottom: 25px; }
+        .game-header h2 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+        .game-header p { font-size: 14px; color: #A68A56; font-style: italic; font-weight: 300; }
 
         /* 스도쿠 보드 */
-        .board-container {
-            width: 100%;
-            aspect-ratio: 1;
-            margin-bottom: 30px;
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            border: 2px solid #2C2C2C;
-            background-color: #FFFFFF;
-        }
-
-        .cell {
-            border: 1px solid #EAEAEA;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            font-weight: 400;
-            cursor: pointer;
-            color: #2C2C2C;
-            font-family: 'Noto Sans KR', sans-serif;
-            transition: background 0.2s;
-        }
-
-        .cell:nth-child(3n) {
-            border-right: 2px solid #2C2C2C;
-        }
-
-        .cell:nth-child(9n) {
-            border-right: none;
-        }
-
-        .cell:nth-child(n+19):nth-child(-n+27),
-        .cell:nth-child(n+46):nth-child(-n+54) {
-            border-bottom: 2px solid #2C2C2C;
-        }
-
-        /* 셀 상태 디자인 */
-        .cell.fixed {
-            font-weight: 500;
-            color: #2C2C2C;
-            background-color: #F9F8F6;
-        }
-
-        .cell.input {
-            color: #C5A059;
-            font-weight: 700;
-            font-style: normal;
-        }
-
-        /* 인터랙션 하이라이트 */
-        .cell.selected {
-            background-color: #F4F1EB;
-        }
-
-        .cell.selected.active-cell {
-            background-color: #A68A56;
-            color: #FFFFFF;
-            font-weight: 700;
-        }
-
-        .cell.highlight-same {
-            background-color: #E8DECE;
-            font-weight: 700;
-            color: #8C6A36;
-        }
-
-        .cell.error {
-            color: #D9534F;
-            background-color: #FFF2F2;
-            font-weight: 700;
-        }
+        .board-container { width: 100%; aspect-ratio: 1; margin-bottom: 30px; display: grid; grid-template-columns: repeat(9, 1fr); border: 2px solid #2C2C2C; background-color: #FFFFFF; }
+        .cell { border: 1px solid #EAEAEA; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: 400; cursor: pointer; color: #2C2C2C; font-family: 'Noto Sans KR', sans-serif; transition: background 0.2s; }
+        .cell:nth-child(3n) { border-right: 2px solid #2C2C2C; }
+        .cell:nth-child(9n) { border-right: none; }
+        .cell:nth-child(n+19):nth-child(-n+27), .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #2C2C2C; }
+        
+        .cell.fixed { font-weight: 500; color: #2C2C2C; background-color: #F9F8F6; } 
+        .cell.input { color: #C5A059; font-weight: 700; font-style: normal; } 
+        
+        .cell.selected { background-color: #F4F1EB; } 
+        .cell.selected.active-cell { background-color: #A68A56; color: #FFFFFF; font-weight: 700; } 
+        .cell.highlight-same { background-color: #E8DECE; font-weight: 700; color: #8C6A36; } 
+        .cell.error { color: #D9534F; background-color: #FFF2F2; font-weight: 700; } 
 
         /* 숫자 패드 */
-        .numpad {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin-top: auto;
-            padding-bottom: 20px;
-        }
+        .numpad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; padding-bottom: 10px; }
+        .num-btn { padding: 18px 0; border-radius: 4px; border: 1px solid #EAEAEA; background-color: #FAFAFA; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: #2C2C2C; cursor: pointer; transition: all 0.2s; }
+        .num-btn:active { background-color: #EFEBE4; transform: scale(0.97); }
+        
+        /* 버튼 그룹 (힌트 & 확인) */
+        .action-group { display: flex; gap: 10px; margin-top: 10px; }
+        .action-btn { flex: 1; background-color: #2C2C2C; color: #FFFFFF; border: none; font-family: 'Noto Sans KR', sans-serif; font-size: 15px; padding: 18px; border-radius: 4px; cursor: pointer; transition: background 0.3s; letter-spacing: 1px; font-weight: 500; }
+        .action-btn:hover { background-color: #1a1a1a; }
+        .hint-btn { background-color: #FFFFFF; border: 1px solid #A68A56; color: #A68A56; }
+        .hint-btn:hover { background-color: #F9F8F6; }
 
-        .num-btn {
-            padding: 18px 0;
-            border-radius: 4px;
-            border: 1px solid #EAEAEA;
-            background-color: #FAFAFA;
-            font-family: 'Playfair Display', serif;
-            font-size: 20px;
-            font-weight: 600;
-            color: #2C2C2C;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .num-btn:active {
-            background-color: #EFEBE4;
-            transform: scale(0.97);
-        }
-
-        /* 확인 버튼 */
-        .action-btn {
-            grid-column: span 5;
-            background-color: #2C2C2C;
-            color: #FFFFFF;
-            border: none;
-            font-family: 'Noto Sans KR', sans-serif;
-            font-size: 15px;
-            padding: 18px;
-            border-radius: 4px;
-            margin-top: 10px;
-            cursor: pointer;
-            transition: background 0.3s;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-weight: 500;
-        }
-
-        .action-btn:hover {
-            background-color: #A68A56;
-        }
+        /* 광고 시뮬레이션 및 애드센스 래퍼 모달 */
+        #ad-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #FFFFFF; }
+        .ad-content { text-align: center; border: 1px solid #A68A56; padding: 20px; border-radius: 8px; background: #1c1c1c; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        
+        /* 애드센스가 들어갈 공간 (직사각형 배너 사이즈 지정) */
+        #adsense-container { width: 300px; height: 250px; background-color: #2C2C2C; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; }
+        
+        .ad-text { font-size: 15px; line-height: 1.5; color: #EAEAEA; }
+        .ad-timer { font-size: 24px; font-weight: 700; color: #C5A059; }
     </style>
     <!-- 구글 애드센스 코드 시작 -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313888937157530" crossorigin="anonymous"></script>
     <!-- 구글 애드센스 코드 끝 -->
 </head>
-
 <body>
 
     <div id="app-container">
@@ -371,7 +109,7 @@
             </div>
 
             <div class="board-container" id="board"></div>
-
+            
             <div class="numpad">
                 <button class="num-btn" data-val="1" onclick="inputNumber(1)">1</button>
                 <button class="num-btn" data-val="2" onclick="inputNumber(2)">2</button>
@@ -382,10 +120,24 @@
                 <button class="num-btn" data-val="7" onclick="inputNumber(7)">7</button>
                 <button class="num-btn" data-val="8" onclick="inputNumber(8)">8</button>
                 <button class="num-btn" data-val="9" onclick="inputNumber(9)">9</button>
-                <button class="num-btn" data-val="0" onclick="inputNumber(0)"
-                    style="font-family:'Noto Sans KR'; font-size:14px; color:#C5A059;">지우기</button>
+                <button class="num-btn" data-val="0" onclick="inputNumber(0)" style="font-family:'Noto Sans KR'; font-size:14px; color:#C5A059;">지우기</button>
             </div>
-            <button class="action-btn" onclick="checkWin()">Check Solution</button>
+            
+            <div class="action-group">
+                <button class="action-btn hint-btn" onclick="showAdForHint()">🎥 힌트 보기</button>
+                <button class="action-btn" onclick="checkWin()">정답 확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ad-modal">
+        <div class="ad-content">
+            <div class="ad-text">스폰서 광고 시청 후<br>정답이 제공됩니다.</div>
+            
+            <div id="adsense-container">
+                </div>
+            
+            <div class="ad-timer">남은 시간: <span id="ad-countdown">5</span>초</div>
         </div>
     </div>
 
@@ -393,8 +145,7 @@
         // 이중 저장 시스템 (쿠키 + 로컬스토리지)
         function saveProgress(data) {
             const dataStr = JSON.stringify(data);
-            try { localStorage.setItem('mj_sudoku_progress', dataStr); } catch (e) { }
-
+            try { localStorage.setItem('mj_sudoku_progress', dataStr); } catch(e) {}
             let date = new Date();
             date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
             document.cookie = "mj_sudoku_progress=" + encodeURIComponent(dataStr) + "; expires=" + date.toUTCString() + "; path=/";
@@ -402,19 +153,19 @@
 
         function loadProgress() {
             let data = null;
-            try {
+            try { 
                 let ls = localStorage.getItem('mj_sudoku_progress');
-                if (ls) data = JSON.parse(ls);
-            } catch (e) { }
+                if(ls) data = JSON.parse(ls); 
+            } catch(e) {}
 
             if (!data) {
                 let nameEQ = "mj_sudoku_progress=";
                 let ca = document.cookie.split(';');
-                for (let i = 0; i < ca.length; i++) {
+                for(let i = 0; i < ca.length; i++) {
                     let c = ca[i];
                     while (c.charAt(0) === ' ') c = c.substring(1, c.length);
                     if (c.indexOf(nameEQ) === 0) {
-                        try { data = JSON.parse(decodeURIComponent(c.substring(nameEQ.length, c.length))); } catch (e) { }
+                        try { data = JSON.parse(decodeURIComponent(c.substring(nameEQ.length, c.length))); } catch(e) {}
                     }
                 }
             }
@@ -424,9 +175,9 @@
         // 게임 설정
         const levels = ["Easy", "Medium", "Hard", "Expert", "Master"];
         const stagesPerLevel = 20;
-
+        
         let progress = loadProgress();
-        levels.forEach(lvl => { if (progress.clearedStages[lvl] === undefined) progress.clearedStages[lvl] = 0; });
+        levels.forEach(lvl => { if(progress.clearedStages[lvl] === undefined) progress.clearedStages[lvl] = 0; });
 
         let currentLevel = "";
         let currentStage = 0;
@@ -439,13 +190,13 @@
         function showView(viewId) {
             document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-
+            
             if (viewId === 'game-view') {
                 document.getElementById('back-button').style.display = 'flex';
-                window.scrollTo(0, 0); // 게임 화면 진입 시 최상단으로
+                window.scrollTo(0, 0); 
             } else {
                 document.getElementById('back-button').style.display = 'none';
-                renderMenu();
+                renderMenu(); 
             }
         }
 
@@ -456,36 +207,33 @@
             levels.forEach((lvl, index) => {
                 const section = document.createElement('div');
                 section.className = 'level-section';
-
-                const isUnlocked = index === 0 || progress.clearedStages[levels[index - 1]] >= 20;
-
+                
+                const isUnlocked = index === 0 || progress.clearedStages[levels[index-1]] >= 20;
+                
                 section.innerHTML = `
                     <div class="level-title">
                         ${lvl} 
                         ${!isUnlocked ? '<span class="locked-icon">Locked (Clear prev. level)</span>' : ''}
                     </div>
                     <div class="stage-grid">
-                        ${Array.from({ length: stagesPerLevel }, (_, i) => {
-                    const stageNum = i + 1;
-                    const isCleared = stageNum <= progress.clearedStages[lvl];
-                    const isPlayable = isUnlocked && (stageNum === 1 || stageNum <= progress.clearedStages[lvl] + 1);
+                        ${Array.from({length: stagesPerLevel}, (_, i) => {
+                            const stageNum = i + 1;
+                            const isCleared = stageNum <= progress.clearedStages[lvl];
+                            const isPlayable = isUnlocked && (stageNum === 1 || stageNum <= progress.clearedStages[lvl] + 1);
+                            const isCurrent = isUnlocked && stageNum === progress.clearedStages[lvl] + 1;
+                            
+                            let cardClass = "stage-card";
+                            if(isCleared) cardClass += " cleared";
+                            else if(!isPlayable) cardClass += " locked";
+                            else if(isCurrent) cardClass += " current"; 
 
-                    // [핵심] 현재 도전해야 할 최고 스테이지 판별
-                    const isCurrent = isUnlocked && stageNum === progress.clearedStages[lvl] + 1;
-
-                    let cardClass = "stage-card";
-                    if (isCleared) cardClass += " cleared";
-                    else if (!isPlayable) cardClass += " locked";
-                    else if (isCurrent) cardClass += " current"; // 현재 판 강조 클래스 추가
-
-                    return `<div class="${cardClass}" onclick="startGame('${lvl}', ${stageNum})">${stageNum}</div>`;
-                }).join('')}
+                            return `<div class="${cardClass}" onclick="startGame('${lvl}', ${stageNum})">${stageNum}</div>`;
+                        }).join('')}
                     </div>
                 `;
                 container.appendChild(section);
             });
 
-            // [신규] 렌더링 직후 '현재 스테이지(current)' 위치로 부드럽게 자동 스크롤
             setTimeout(() => {
                 const currentCard = document.querySelector('.stage-card.current');
                 if (currentCard) {
@@ -498,7 +246,7 @@
             currentLevel = level;
             currentStage = stage;
             document.getElementById('current-stage-title').innerText = `${level} - Stage ${stage}`;
-
+            
             generateSudoku(level);
             renderBoard();
             showView('game-view');
@@ -506,21 +254,21 @@
 
         function generateSudoku(level) {
             const base = [
-                [5, 3, 4, 6, 7, 8, 9, 1, 2], [6, 7, 2, 1, 9, 5, 3, 4, 8], [1, 9, 8, 3, 4, 2, 5, 6, 7],
-                [8, 5, 9, 7, 6, 1, 4, 2, 3], [4, 2, 6, 8, 5, 3, 7, 9, 1], [7, 1, 3, 9, 2, 4, 8, 5, 6],
-                [9, 6, 1, 5, 3, 7, 2, 8, 4], [2, 8, 7, 4, 1, 9, 6, 3, 5], [3, 4, 5, 2, 8, 6, 1, 7, 9]
+                [5,3,4,6,7,8,9,1,2], [6,7,2,1,9,5,3,4,8], [1,9,8,3,4,2,5,6,7],
+                [8,5,9,7,6,1,4,2,3], [4,2,6,8,5,3,7,9,1], [7,1,3,9,2,4,8,5,6],
+                [9,6,1,5,3,7,2,8,4], [2,8,7,4,1,9,6,3,5], [3,4,5,2,8,6,1,7,9]
             ];
-
-            const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
-            solutionBoard = base.map(row => row.map(val => nums[val - 1]));
+            
+            const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+            solutionBoard = base.map(row => row.map(val => nums[val-1]));
             playerBoard = JSON.parse(JSON.stringify(solutionBoard));
 
-            let removeCount = 30 + (levels.indexOf(level) * 7);
-
-            while (removeCount > 0) {
+            let removeCount = 30 + (levels.indexOf(level) * 7); 
+            
+            while(removeCount > 0) {
                 let r = Math.floor(Math.random() * 9);
                 let c = Math.floor(Math.random() * 9);
-                if (playerBoard[r][c] !== 0) {
+                if(playerBoard[r][c] !== 0) {
                     playerBoard[r][c] = 0;
                     removeCount--;
                 }
@@ -532,18 +280,18 @@
             boardDiv.innerHTML = "";
             selectedCell = null;
 
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
+            for(let r=0; r<9; r++) {
+                for(let c=0; c<9; c++) {
                     const cell = document.createElement('div');
                     cell.className = "cell";
                     cell.dataset.r = r;
                     cell.dataset.c = c;
-
-                    if (playerBoard[r][c] !== 0) {
+                    
+                    if(playerBoard[r][c] !== 0) {
                         cell.innerText = playerBoard[r][c];
-                        cell.classList.add('fixed');
+                        cell.classList.add('fixed'); 
                     }
-
+                    
                     cell.onclick = () => selectCell(cell, r, c);
                     boardDiv.appendChild(cell);
                 }
@@ -554,14 +302,14 @@
             document.querySelectorAll('.cell').forEach(el => {
                 el.classList.remove('selected', 'active-cell', 'highlight-same');
             });
-
+            
             selectedCell = { el: cellElement, r: r, c: c };
-
-            for (let i = 0; i < 9; i++) {
+            
+            for(let i=0; i<9; i++) {
                 document.querySelector(`.cell[data-r="${r}"][data-c="${i}"]`).classList.add('selected');
                 document.querySelector(`.cell[data-r="${i}"][data-c="${c}"]`).classList.add('selected');
             }
-
+            
             cellElement.classList.add('active-cell');
 
             let cellValue = playerBoard[r][c];
@@ -579,10 +327,10 @@
         }
 
         function inputNumber(num) {
-            if (!selectedCell) return;
-            if (selectedCell.el.classList.contains('fixed')) return;
-
-            if (num === 0) {
+            if(!selectedCell) return;
+            if(selectedCell.el.classList.contains('fixed')) return; 
+            
+            if(num === 0) {
                 playerBoard[selectedCell.r][selectedCell.c] = 0;
                 selectedCell.el.innerText = "";
                 selectedCell.el.classList.remove('input');
@@ -592,41 +340,92 @@
                 selectedCell.el.classList.add('input');
                 selectedCell.el.classList.remove('error');
             }
-
+            
             selectCell(selectedCell.el, selectedCell.r, selectedCell.c);
+        }
+
+        // --- 애드센스 힌트 로직 ---
+        function showAdForHint() {
+            if (!selectedCell) {
+                alert("힌트를 받을 빈칸을 먼저 선택해주세요.");
+                return;
+            }
+            if (selectedCell.el.classList.contains('fixed')) {
+                alert("이미 고정되어 있는 숫자입니다. 다른 빈칸을 선택해주세요.");
+                return;
+            }
+            
+            const r = selectedCell.r;
+            const c = selectedCell.c;
+            if (playerBoard[r][c] === solutionBoard[r][c]) {
+                alert("이미 정답이 입력된 칸입니다!");
+                return;
+            }
+
+            const adModal = document.getElementById('ad-modal');
+            const timerEl = document.getElementById('ad-countdown');
+            const adContainer = document.getElementById('adsense-container');
+            
+            // 기존 광고를 초기화하고 애드센스 태그를 새로 생성하여 주입 (광고 갱신 목적)
+            adContainer.innerHTML = '<ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-1313888937157530" data-ad-slot="6341964526"></ins>';
+            
+            // 애드센스에 광고 요청
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.error("AdSense Error: ", e);
+            }
+
+            // 대기 시간 5초로 설정 (광고가 로딩되는 시간 고려)
+            let timeLeft = 5; 
+            timerEl.innerText = timeLeft;
+            adModal.style.display = 'flex';
+            
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    adModal.style.display = 'none';
+                    
+                    // 정답 자동 기입
+                    inputNumber(solutionBoard[r][c]);
+                }
+            }, 1000);
         }
 
         function checkWin() {
             let isWin = true;
             let isFull = true;
 
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    if (playerBoard[r][c] === 0) {
+            for(let r=0; r<9; r++) {
+                for(let c=0; c<9; c++) {
+                    if(playerBoard[r][c] === 0) {
                         isFull = false;
                         continue;
                     }
-                    if (playerBoard[r][c] !== solutionBoard[r][c]) {
+                    if(playerBoard[r][c] !== solutionBoard[r][c]) {
                         isWin = false;
                         const cellEl = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
-                        if (!cellEl.classList.contains('fixed')) {
+                        if(!cellEl.classList.contains('fixed')) {
                             cellEl.classList.add('error');
                         }
                     }
                 }
             }
 
-            if (!isFull) {
+            if(!isFull) {
                 alert("아직 빈칸이 있습니다!");
                 return;
             }
 
-            if (isWin) {
+            if(isWin) {
                 alert("정답입니다! 다음 스테이지가 열렸습니다.");
-
-                if (progress.clearedStages[currentLevel] < currentStage) {
+                
+                if(progress.clearedStages[currentLevel] < currentStage) {
                     progress.clearedStages[currentLevel] = currentStage;
-                    saveProgress(progress);
+                    saveProgress(progress); 
                 }
                 showView('menu-view');
             } else {
@@ -635,5 +434,4 @@
         }
     </script>
 </body>
-
 </html>
