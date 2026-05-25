@@ -67,26 +67,37 @@
         .num-btn { padding: 18px 0; border-radius: 4px; border: 1px solid #EAEAEA; background-color: #FAFAFA; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: #2C2C2C; cursor: pointer; transition: all 0.2s; }
         .num-btn:active { background-color: #EFEBE4; transform: scale(0.97); }
         
-        /* 버튼 그룹 (힌트 & 확인) */
-        .action-group { display: flex; gap: 10px; margin-top: 10px; }
-        .action-btn { flex: 1; background-color: #2C2C2C; color: #FFFFFF; border: none; font-family: 'Noto Sans KR', sans-serif; font-size: 15px; padding: 18px; border-radius: 4px; cursor: pointer; transition: background 0.3s; letter-spacing: 1px; font-weight: 500; }
-        .action-btn:hover { background-color: #1a1a1a; }
-        .hint-btn { background-color: #FFFFFF; border: 1px solid #A68A56; color: #A68A56; }
-        .hint-btn:hover { background-color: #F9F8F6; }
+        /* [수정됨] 단일 확인 버튼 디자인 개편 */
+        .action-btn { 
+            width: 100%; 
+            background-color: #2C2C2C; 
+            color: #FFFFFF; 
+            border: none; 
+            font-family: 'Noto Sans KR', sans-serif; 
+            font-size: 15px; 
+            padding: 18px; 
+            border-radius: 4px; 
+            margin-top: 15px;
+            cursor: pointer; 
+            transition: background 0.3s; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            font-weight: 500; 
+        }
+        .action-btn:hover { background-color: #A68A56; }
 
-        /* 광고 시뮬레이션 및 애드센스 래퍼 모달 */
-        #ad-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #FFFFFF; }
-        .ad-content { text-align: center; border: 1px solid #A68A56; padding: 20px; border-radius: 8px; background: #1c1c1c; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        
-        /* 애드센스가 들어갈 공간 (직사각형 배너 사이즈 지정) */
-        #adsense-container { width: 300px; height: 250px; background-color: #2C2C2C; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; }
-        
-        .ad-text { font-size: 15px; line-height: 1.5; color: #EAEAEA; }
-        .ad-timer { font-size: 24px; font-weight: 700; color: #C5A059; }
+        /* [신규] 정답확인 하단 고정 광고 레이아웃 */
+        #bottom-ad-container {
+            margin: 25px auto 10px;
+            width: 100%;
+            min-height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #FAFAFA;
+            border: 1px dashed #EAEAEA;
+        }
     </style>
-    <!-- 구글 애드센스 코드 시작 -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313888937157530" crossorigin="anonymous"></script>
-    <!-- 구글 애드센스 코드 끝 -->
 </head>
 <body>
 
@@ -123,21 +134,9 @@
                 <button class="num-btn" data-val="0" onclick="inputNumber(0)" style="font-family:'Noto Sans KR'; font-size:14px; color:#C5A059;">지우기</button>
             </div>
             
-            <div class="action-group">
-                <button class="action-btn hint-btn" onclick="showAdForHint()">🎥 힌트 보기</button>
-                <button class="action-btn" onclick="checkWin()">정답 확인</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="ad-modal">
-        <div class="ad-content">
-            <div class="ad-text">스폰서 광고 시청 후<br>정답이 제공됩니다.</div>
+            <button class="action-btn" onclick="checkWin()">정답 확인</button>
             
-            <div id="adsense-container">
-                </div>
-            
-            <div class="ad-timer">남은 시간: <span id="ad-countdown">5</span>초</div>
+            <div id="bottom-ad-container"></div>
         </div>
     </div>
 
@@ -194,9 +193,23 @@
             if (viewId === 'game-view') {
                 document.getElementById('back-button').style.display = 'flex';
                 window.scrollTo(0, 0); 
+                // [신규] 게임 뷰 진입 시 하단 광고 활성화
+                loadBottomAd();
             } else {
                 document.getElementById('back-button').style.display = 'none';
                 renderMenu(); 
+            }
+        }
+
+        // [신규] 하단 고정 배너 광고 렌더링 로직
+        function loadBottomAd() {
+            const container = document.getElementById('bottom-ad-container');
+            // 뷰 전환 시 광고 갱신을 보장하기 위해 요소를 새로 주입합니다.
+            container.innerHTML = '<ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-1313888937157530" data-ad-slot="6341964526"></ins>';
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.error("AdSense Error: ", e);
             }
         }
 
@@ -342,57 +355,6 @@
             }
             
             selectCell(selectedCell.el, selectedCell.r, selectedCell.c);
-        }
-
-        // --- 애드센스 힌트 로직 ---
-        function showAdForHint() {
-            if (!selectedCell) {
-                alert("힌트를 받을 빈칸을 먼저 선택해주세요.");
-                return;
-            }
-            if (selectedCell.el.classList.contains('fixed')) {
-                alert("이미 고정되어 있는 숫자입니다. 다른 빈칸을 선택해주세요.");
-                return;
-            }
-            
-            const r = selectedCell.r;
-            const c = selectedCell.c;
-            if (playerBoard[r][c] === solutionBoard[r][c]) {
-                alert("이미 정답이 입력된 칸입니다!");
-                return;
-            }
-
-            const adModal = document.getElementById('ad-modal');
-            const timerEl = document.getElementById('ad-countdown');
-            const adContainer = document.getElementById('adsense-container');
-            
-            // 기존 광고를 초기화하고 애드센스 태그를 새로 생성하여 주입 (광고 갱신 목적)
-            adContainer.innerHTML = '<ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-1313888937157530" data-ad-slot="6341964526"></ins>';
-            
-            // 애드센스에 광고 요청
-            try {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) {
-                console.error("AdSense Error: ", e);
-            }
-
-            // 대기 시간 5초로 설정 (광고가 로딩되는 시간 고려)
-            let timeLeft = 5; 
-            timerEl.innerText = timeLeft;
-            adModal.style.display = 'flex';
-            
-            const countdownInterval = setInterval(() => {
-                timeLeft--;
-                timerEl.innerText = timeLeft;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    adModal.style.display = 'none';
-                    
-                    // 정답 자동 기입
-                    inputNumber(solutionBoard[r][c]);
-                }
-            }, 1000);
         }
 
         function checkWin() {
